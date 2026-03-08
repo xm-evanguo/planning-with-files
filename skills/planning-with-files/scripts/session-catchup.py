@@ -9,22 +9,34 @@ Usage: python3 session-catchup.py [project-path]
 """
 
 import json
-import sys
 import os
+import sys
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
-from datetime import datetime
+from typing import Dict, List, Optional, Tuple
 
-PLANNING_FILES = ['task_plan.md', 'progress.md', 'findings.md']
+PLANNING_FILES = ("task_plan.md", "progress.md", "findings.md")
 
 
-def get_project_dir(project_path: str) -> Path:
-    """Convert project path to Claude's storage path format."""
+def get_project_dir(project_path: str) -> Tuple[Optional[Path], Optional[str]]:
+    """Resolve session storage path for the current runtime variant."""
     sanitized = project_path.replace('/', '-')
     if not sanitized.startswith('-'):
         sanitized = '-' + sanitized
     sanitized = sanitized.replace('_', '-')
-    return Path.home() / '.claude' / 'projects' / sanitized
+
+    claude_path = Path.home() / '.claude' / 'projects' / sanitized
+
+    script_path = Path(__file__).as_posix().lower()
+    is_codex_variant = '/.codex/' in script_path or bool(os.environ.get('CODEX_SKILL_ROOT'))
+    codex_sessions_dir = Path.home() / '.codex' / 'sessions'
+    if is_codex_variant and codex_sessions_dir.exists() and not claude_path.exists():
+        return None, (
+            "[planning-with-files] Session catchup is not implemented for Codex "
+            "session logs yet. Read task_plan.md, findings.md, progress.md, "
+            "then run `git diff --stat` if you need to recover state."
+        )
+
+    return claude_path, None
 
 
 def get_sessions_sorted(project_dir: Path) -> List[Path]:
@@ -37,8 +49,8 @@ def get_sessions_sorted(project_dir: Path) -> List[Path]:
 def parse_session_messages(session_file: Path) -> List[Dict]:
     """Parse all messages from a session file, preserving order."""
     messages = []
-    with open(session_file, 'r') as f:
-        for line_num, line in enumerate(f):
+    with session_file.open("r") as session_handle:
+        for line_num, line in enumerate(session_handle):
             try:
                 data = json.loads(line)
                 data['_line_num'] = line_num
@@ -140,22 +152,27 @@ def extract_messages_after(messages: List[Dict], after_line: int) -> List[Dict]:
 
 def main():
     project_path = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
-    project_dir = get_project_dir(project_path)
+    project_dir, skip_reason = get_project_dir(project_path)
+    project_root = Path(project_path)
 
     # Check if planning files exist (indicates active task)
     has_planning_files = any(
-        Path(project_path, f).exists() for f in PLANNING_FILES
+        (project_root / planning_file).exists() for planning_file in PLANNING_FILES
     )
     if not has_planning_files:
         # No planning files in this project; skip catchup to avoid noise.
         return
 
-    if not project_dir.exists():
+    if skip_reason:
+        print(skip_reason)
+        return
+
+    if project_dir is None or not project_dir.exists():
         # No previous sessions, nothing to catch up on
         return
 
     sessions = get_sessions_sorted(project_dir)
-    if len(sessions) < 1:
+    if not sessions:
         return
 
     # Find a substantial previous session

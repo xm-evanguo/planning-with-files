@@ -1,0 +1,4 @@
+interface:
+  display_name: "Planning With Files"
+  short_description: "Keep durable task plans and findings on disk"
+  default_prompt: "Use $planning-with-files to organize this multi-step task with task_plan.md, findings.md, and progress.md."

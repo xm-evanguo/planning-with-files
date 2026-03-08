@@ -2,11 +2,15 @@
 
 ## Overview
 
-planning-with-files works with Codex as a personal skill in `~/.codex/skills/`.
+The canonical Codex-ready skill lives at `skills/planning-with-files`.
+
+Install it either:
+- in your personal skills at `~/.codex/skills/planning-with-files`
+- in a repo-local `.codex/skills/planning-with-files` folder so teammates can use it too
 
 ## Installation
 
-Codex auto-discovers skills from `.codex/skills/` directories. Two installation methods:
+Codex discovers skills from repo-local `.codex/skills/` directories and from your personal `~/.codex/skills/` directory.
 
 ### Method 1: Workspace Installation (Recommended)
 
@@ -16,23 +20,24 @@ Share the skill with your entire team by adding it to your repository:
 # In your project repository
 git clone https://github.com/OthmanAdi/planning-with-files.git /tmp/planning-with-files
 
-# Copy the Codex skill to your repo
-cp -r /tmp/planning-with-files/.codex .
+# Copy the skill into your repo-local Codex skills directory
+mkdir -p .codex/skills
+cp -R /tmp/planning-with-files/skills/planning-with-files .codex/skills/
 
 # Commit to share with team
-git add .codex/
-git commit -m "Add planning-with-files skill for Codex"
+git add .codex/skills/planning-with-files
+git commit -m "Add planning-with-files Codex skill"
 git push
 
 # Clean up
 rm -rf /tmp/planning-with-files
 ```
 
-Now everyone on your team using Codex will have access to the skill!
+Teammates using Codex will now discover the skill from the repo.
 
 ### Method 2: Personal Installation
 
-Install just for yourself:
+Install it just for yourself:
 
 ```bash
 # Clone the repo
@@ -40,39 +45,36 @@ git clone https://github.com/OthmanAdi/planning-with-files.git /tmp/planning-wit
 
 # Copy to your personal Codex skills folder
 mkdir -p ~/.codex/skills
-cp -r /tmp/planning-with-files/.codex/skills/planning-with-files ~/.codex/skills/
+cp -R /tmp/planning-with-files/skills/planning-with-files ~/.codex/skills/
 
 # Clean up
 rm -rf /tmp/planning-with-files
 ```
 
-## Usage with Superpowers
+## Usage
 
-If you have [obra/superpowers](https://github.com/obra/superpowers) installed:
+Codex can pick the skill automatically when the task matches its description, or you can mention `$planning-with-files` explicitly.
 
-```bash
-~/.codex/superpowers/.codex/superpowers-codex use-skill planning-with-files
-```
+Codex does not use Claude-style hook metadata from older skills, so follow the workflow in `SKILL.md` directly:
+- create or refresh `task_plan.md`, `findings.md`, and `progress.md`
+- re-read `task_plan.md` before major decisions
+- update the files after each phase
+- run `scripts/check-complete.sh` when you want a quick completion summary
 
-## Usage without Superpowers
-
-Add to your `~/.codex/AGENTS.md`:
+If you want a standing reminder, add a note like this to `~/AGENTS.md`:
 
 ```markdown
-## Planning with Files
+## Planning With Files
 
-<IMPORTANT>
-For complex tasks (3+ steps, research, projects):
-1. Read skill: `cat ~/.codex/skills/planning-with-files/SKILL.md`
-2. Create task_plan.md, findings.md, progress.md in your project directory
-3. Follow 3-file pattern throughout the task
-</IMPORTANT>
+For complex multi-step work, use $planning-with-files and keep `task_plan.md`,
+`findings.md`, and `progress.md` updated in the project directory.
 ```
 
 ## Verification
 
 ```bash
 ls -la ~/.codex/skills/planning-with-files/SKILL.md
+ls -la ~/.codex/skills/planning-with-files/agents/openai.yaml
 ```
 
 ## Learn More

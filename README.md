@@ -210,10 +210,10 @@ Filesystem = Disk (persistent, unlimited)
 | Principle | Implementation |
 |-----------|----------------|
 | Filesystem as memory | Store in files, not context |
-| Attention manipulation | Re-read plan before decisions (hooks) |
+| Attention manipulation | Re-read plan before decisions; automate it where hooks exist |
 | Error persistence | Log failures in plan file |
 | Goal tracking | Checkboxes show progress |
-| Completion verification | Stop hook checks all phases |
+| Completion verification | Use the completion check script, or a stop hook where supported |
 
 ## Usage
 
@@ -221,16 +221,18 @@ Once installed, the AI agent will:
 
 1. **Ask for your task** if no description is provided
 2. **Create `task_plan.md`, `findings.md`, and `progress.md`** in your project directory
-3. **Re-read plan** before major decisions (via PreToolUse hook)
-4. **Remind you** to update status after file writes (via PostToolUse hook)
+3. **Re-read plan** before major decisions
+4. **Update status after writes and phase changes**
 5. **Store findings** in `findings.md` instead of stuffing context
 6. **Log errors** for future reference
-7. **Verify completion** before stopping (via Stop hook)
+7. **Verify completion** before stopping with the bundled check script or platform hooks
 
 Invoke with:
 - `/planning-with-files:plan` - Type `/plan` to find in autocomplete (v2.11.0+)
 - `/planning-with-files:start` - Type `/planning` to find in autocomplete
 - `/planning-with-files` - Only if you copied skills to `~/.claude/skills/`
+
+On platforms without hook support, follow the same workflow manually. The Codex variant is just a plain skill folder with no hook metadata.
 
 See [docs/quickstart.md](docs/quickstart.md) for the full 5-step guide.
 
@@ -297,9 +299,10 @@ planning-with-files/
 │   ├── SKILL.md
 │   ├── templates/
 │   └── scripts/
-├── skills/                  # Legacy skill folder
+├── skills/                  # Canonical portable skills
 │   └── planning-with-files/
 │       ├── SKILL.md
+│       ├── agents/
 │       ├── examples.md
 │       ├── reference.md
 │       ├── templates/
@@ -311,7 +314,7 @@ planning-with-files/
 ├── .gemini/                 # Gemini CLI skills
 │   └── skills/
 │       └── planning-with-files/
-├── .codex/                  # Codex IDE skills
+├── .codex/                  # Repo-local Codex skills
 │   └── skills/
 ├── .opencode/               # OpenCode IDE skills
 │   └── skills/
